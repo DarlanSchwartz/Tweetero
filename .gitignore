@@ -1,0 +1,47 @@
+# Dependências
+/node_modules
+
+# Arquivos de build
+/build
+/dist
+
+# Arquivos de configuração de ambiente
+.env
+
+# Logs
+/logs
+*.log
+
+# Outros arquivos gerados durante a execução do projeto
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários
+.tmp
+
+# Arquivos de backup
+*.bak
+*.swp
+
+# Cache
+/cache
+
+# Arquivos gerados pelo sistema operacional
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Arquivos de capturas de erro
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos gerados pela ferramenta de testes
+/coverage
+
+# Diretório de compilação do TypeScript
+/dist
+
+# Diretório de configuração do VSCode
+.vscode
