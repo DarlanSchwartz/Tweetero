@@ -2,20 +2,18 @@ import cors from 'cors';
 import express from 'express';
 
 const app = express();
+const PORT = 5000;
+
+const allTweets = [];
+const usersSignedUp = [];
 
 app.use(cors());
 app.use(express.json());
-
-const PORT = 5000;
 
 app.listen(PORT, () => {
     console.log(`Servidor iniciado na porta ${PORT}`);
 });
 
-
-const allTweets = [];
-const usersLoggedIn = [];
-const usersSignedUp = [];
 
 function getTweetsFromUser(user) {
     return allTweets.filter(tweet => tweet.username == user);
@@ -28,57 +26,59 @@ function getAvatarFromUser(userFind) {
 app.get('/tweets', (req, res) => {
 
     const page = parseInt(req.query.page);
+
+    if (allTweets.length == 0) {
+        res.status(200).send([]);
+        return;
+    }
+
     if (!page || page <= 0) {
         res.status(400).send('Informe uma página válida!');
     }
     else {
-        const limit = 10;
-        const searchTweet = allTweets.length - page * limit;
-        const firstTweet = (page - 1) * limit;
 
-        let sliceStart;
-        let sliceEnd;
+        if (page === 1) {
+            console.log('Requested page 1 of tweets');
 
-        if (allTweets.length <= limit) 
-        {
-            sliceStart = 0;
-        }
-        else 
-        {
-            if (searchTweet < 0) 
-            {
-                sliceStart = 0;
-            } 
-            else 
-            {
-                sliceStart = searchTweet;
+            if (allTweets.length <= 10) {
+                const finalResponse = [...allTweets].reverse();
+                finalResponse.forEach(tweet => {
+                    tweet.avatar = getAvatarFromUser(tweet.username);
+                });
+                res.status(200).send(finalResponse);
+                console.log('Responded with all of tweets because we dont have more than 10 tweets');
+            }
+            else {
+                const finalResponse = [...allTweets].reverse().slice(0, 9);
+                finalResponse.forEach(tweet => {
+                    tweet.avatar = getAvatarFromUser(tweet.username);
+                });
+                res.status(200).send(finalResponse);
+                console.log('Responded with tweets between 0 and 9');
             }
         }
+        else {
+            let startSlice = (page - 1) * 10;
+            let endSlice = startSlice + 10;
 
-        
-        if (firstTweet > allTweets.length) 
-        {
-            sliceEnd = 0;
-        }
-        else 
-        {
-            if (sliceStart === 0) 
-            {
-                sliceEnd = allTweets.length - firstTweet;
-            } 
-            else 
-            {
-                sliceEnd = sliceStart + limit;
+            if (startSlice > allTweets.length) {
+                res.status(200).send([]);
+                console.log(`Responded with empty array because the page index requested (${page}) doesn't have any tweets!`);
+                return;
             }
-        }
-        const finalResponse = allTweets.slice(sliceStart, sliceEnd).reverse();
-        finalResponse.forEach(tweet => {
-            tweet.avatar = getAvatarFromUser(tweet.username);
-        });
 
-        console.log(finalResponse.length);
-        console.log(page);
-        res.status(200).send(finalResponse);
+            if (endSlice > allTweets.length) {
+                endSlice = allTweets.length;
+            }
+
+            console.log(`Responded with tweets between ${startSlice} and ${endSlice}`);
+
+            const finalResponse = allTweets.slice(startSlice, endSlice).reverse();
+            finalResponse.forEach(tweet => {
+                tweet.avatar = getAvatarFromUser(tweet.username);
+            });
+            res.status(200).send(finalResponse);
+        }
     }
 });
 
