@@ -32,7 +32,7 @@ app.get('/tweets', (req, res) => {
         return;
     }
 
-    if (!page || page <= 0) {
+    if (page && page <= 0) {
         res.status(400).send('Informe uma página válida!');
     }
     else {
@@ -113,6 +113,12 @@ app.post('/sign-up', (req, res) => {
 
 app.post('/tweets', (req, res) => {
 
+    if(!req.body || !req.body.tweet || req.body.tweet == '')
+    {
+        res.sendStatus(400);
+    }
+    
+
     const newTweet = req.body;
     const tweetFrom = req.headers.user;
 
@@ -124,7 +130,3 @@ app.post('/tweets', (req, res) => {
         res.status(201).send('OK');
     }
 });
-
-
-
-
