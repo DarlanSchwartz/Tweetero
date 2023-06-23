@@ -23,6 +23,16 @@ function getAvatarFromUser(userFind) {
     return usersSignedUp.find(user => user.username == userFind).avatar;
 }
 
+// GET TWEETS
+
+// [
+// 	{
+// 		username: "bobesponja",
+// 		avatar: "https://cdn.shopify.com/s/files/1/0150/0643/3380/files/Screen_Shot_2019-07-01_at_11.35.42_AM_370x230@2x.png",
+// 		tweet: "Eu amo hambúrguer de siri!"
+// 	}
+// ]
+
 app.get('/tweets', (req, res) => {
 
     const page = parseInt(req.query.page);
@@ -58,26 +68,32 @@ app.get('/tweets', (req, res) => {
             }
         }
         else {
-            let startSlice = (page - 1) * 10;
-            let endSlice = startSlice + 10;
-
-            if (startSlice > allTweets.length) {
+            if (allTweets.length == 0) {
                 res.status(200).send([]);
-                console.log(`Responded with empty array because the page index requested (${page}) doesn't have any tweets!`);
-                return;
             }
+            else {
+                let startSlice = page ? (page - 1) * 10 : 0;
+                let endSlice = startSlice + 10;
 
-            if (endSlice > allTweets.length) {
-                endSlice = allTweets.length;
+                if (startSlice > allTweets.length) {
+                    res.status(200).send([]);
+                    console.log(`Responded with empty array because the page index requested (${page}) doesn't have any tweets!`);
+                    return;
+                }
+
+                if (endSlice > allTweets.length) {
+                    endSlice = allTweets.length;
+                }
+
+                console.log(`Responded with tweets between ${startSlice} and ${endSlice}`);
+
+                const finalResponse = allTweets.slice(startSlice, endSlice).reverse();
+                finalResponse.forEach(tweet => {
+                    tweet.avatar = getAvatarFromUser(tweet.username);
+                });
+
+                res.status(200).send(finalResponse);
             }
-
-            console.log(`Responded with tweets between ${startSlice} and ${endSlice}`);
-
-            const finalResponse = allTweets.slice(startSlice, endSlice).reverse();
-            finalResponse.forEach(tweet => {
-                tweet.avatar = getAvatarFromUser(tweet.username);
-            });
-            res.status(200).send(finalResponse);
         }
     }
 });
@@ -93,6 +109,11 @@ app.get('/tweets/:id', (req, res) => {
 
 
 // SING UP
+
+// {
+//     username: "bobesponja",
+// 		avatar: "https://cdn.shopify.com/s/files/1/0150/0643/3380/files/Screen_Shot_2019-07-01_at_11.35.42_AM_370x230@2x.png"
+// }
 
 app.post('/sign-up', (req, res) => {
     if (usersSignedUp.find(user => user.username == req.body.username) == undefined) {
@@ -111,13 +132,17 @@ app.post('/sign-up', (req, res) => {
 
 // POST TWEET
 
+// {
+// 	 username: "bobesponja",
+//   tweet: "Eu amo hambúrguer de siri!"
+// }
+
 app.post('/tweets', (req, res) => {
 
-    if(!req.body || !req.body.tweet || req.body.tweet == '')
-    {
+    if (!req.body || !req.body.tweet || req.body.tweet == '' || !isNaN(req.body.tweet)) {
         res.sendStatus(400);
+        return;
     }
-    
 
     const newTweet = req.body;
     const tweetFrom = req.headers.user;
